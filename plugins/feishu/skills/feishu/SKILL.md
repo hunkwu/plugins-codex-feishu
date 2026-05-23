@@ -25,6 +25,7 @@ Use this skill when the user asks to operate Feishu, Feishu Docs, Wiki, groups, 
 - Wiki: `wiki_v1_node_search`, `wiki_v2_space_getNode`
 - Contacts: `contact_v3_user_batchGetId`
 - Generic fallback: `feishu_openapi_request`
+- Webhook receiver: `scripts/feishu_webhook_server.py`
 
 The stable local MCP server currently wraps the core IM, Docs, Wiki, and Contacts flows directly. For Bitable, permissions, and other less-common endpoints, use `feishu_openapi_request` until a dedicated stable wrapper is added.
 
@@ -87,6 +88,7 @@ useUAT: true
 - Group summary: summarize recent group messages into decisions, action items, blockers, and owners.
 - Bot reply: search Docs or Wiki, compose an answer, and push it back to a target Feishu chat.
 - Codex project digest push: summarize project progress and push an update into a Feishu chat on a schedule.
+- Webhook to bot reply: receive `im.message.receive_v1`, draft a reply with Codex, and send it back to the same chat.
 
 ## References
 
@@ -96,6 +98,7 @@ useUAT: true
 - Wiki and knowledge base: `reference/wiki.md`
 - Bitable: `reference/bitable.md`
 - Permissions: `reference/permissions.md`
+- Webhook event subscription: `reference/webhook.md`
 - Reusable workflows: `reference/workflows.md`
 
 ## Boundaries

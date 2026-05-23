@@ -31,14 +31,27 @@
 
 ## Event Subscription Extension
 
-For bot mentions or passive message intake, add a webhook service outside this plugin:
+For bot mentions or passive message intake, use the bundled webhook receiver or deploy the same flow to your own service:
 
 ```text
 Feishu event callback
   -> verify challenge
+  -> verify token
+  -> decrypt event when Encrypt Key is enabled
   -> normalize event
   -> call agent workflow
   -> send result with im_v1_message_create
 ```
 
-Cloudflare Workers, Vercel Functions, or an existing OpenClaw/Hermes service are suitable hosts.
+Local receiver:
+
+```bash
+export FEISHU_VERIFICATION_TOKEN="xxx"
+export FEISHU_ENCRYPT_KEY="xxx"
+
+scripts/feishu_webhook_server.py
+```
+
+Cloudflare Workers, Vercel Functions, or an existing OpenClaw/Hermes service are suitable production hosts.
+
+See `reference/webhook.md` for the Feishu Open Platform configuration checklist.

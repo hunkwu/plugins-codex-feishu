@@ -1,6 +1,6 @@
 {
   "name": "feishu",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Open-source Feishu plugin for Codex with stable IM, Docs, Wiki, and team workflow capabilities.",
   "author": {
     "name": "Hunk Wu",
@@ -23,7 +23,7 @@
   "interface": {
     "displayName": "Feishu",
     "shortDescription": "Summarize chats, search docs, and push Codex updates to Feishu.",
-    "longDescription": "Feishu for Codex is an open-source plugin for teams that use Feishu for collaboration. It provides stable OpenAPI-backed tools for chat summaries, bot-style conversations, Docs and Wiki retrieval, and periodic project digests pushed from Codex into Feishu.",
+    "longDescription": "Feishu for Codex is an open-source plugin for teams that use Feishu for collaboration. It provides stable OpenAPI-backed tools for chat summaries, bot-style conversations, Docs and Wiki retrieval, event subscription webhooks, and periodic project digests pushed from Codex into Feishu.",
     "developerName": "Hunk Wu",
     "category": "Productivity",
     "capabilities": [
@@ -42,9 +42,9 @@
     "composerIcon": "./assets/icon.png",
     "logo": "./assets/logo.png",
     "screenshots": [
+      "./assets/screenshots/plugin-marketplace-real.png",
       "./assets/screenshots/plugin-detail-real.png",
-      "./assets/screenshots/plugin-install-real.png",
-      "./assets/screenshots/github-repo-overview.png"
+      "./assets/screenshots/plugin-install-real.png"
     ]
   }
 }

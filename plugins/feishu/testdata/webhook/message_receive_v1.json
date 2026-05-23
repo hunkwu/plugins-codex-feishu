@@ -1,0 +1,26 @@
+{
+  "schema": "2.0",
+  "header": {
+    "event_id": "ev_test_001",
+    "event_type": "im.message.receive_v1",
+    "create_time": "1710000000000",
+    "token": "test-verification-token",
+    "app_id": "cli_test",
+    "tenant_key": "tenant_test"
+  },
+  "event": {
+    "sender": {
+      "sender_id": {
+        "open_id": "ou_test_sender"
+      },
+      "sender_type": "user"
+    },
+    "message": {
+      "message_id": "om_test_message",
+      "chat_id": "oc_test_chat",
+      "chat_type": "group",
+      "message_type": "text",
+      "content": "{\"text\":\"请总结今天的项目进展\"}"
+    }
+  }
+}

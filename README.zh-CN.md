@@ -12,11 +12,11 @@
 
 ## 预览
 
+![Feishu 插件市场入口](./plugins/feishu/assets/screenshots/plugin-marketplace-real.png)
+
 ![Feishu 插件详情页](./plugins/feishu/assets/screenshots/plugin-detail-real.png)
 
 ![在 Codex 中安装 Feishu 插件](./plugins/feishu/assets/screenshots/plugin-install-real.png)
-
-![Feishu for Codex 仓库概览](./plugins/feishu/assets/screenshots/github-repo-overview.png)
 
 ## 解决什么问题
 
@@ -24,6 +24,7 @@
 - 在 Codex 里搜索飞书文档和知识库
 - 生成机器人式回复并回推到飞书
 - 将 Codex 项目日报、周报推送到飞书群
+- 接收飞书事件订阅 Webhook，用于机器人被动触发和群消息入口
 - 用本地稳定 HTTP MCP 实现，绕开上游 beta token 链路不稳定的问题
 
 ## 核心场景
@@ -44,6 +45,16 @@
 ### 3. Codex 项目总结推送
 
 基于 Codex 项目进展自动生成日报或周报，并推送到飞书群。
+
+### 4. Webhook 事件订阅
+
+接收飞书开放平台事件订阅回调，支持：
+
+- `url_verification` challenge 校验
+- `Verification Token` 来源校验
+- `X-Lark-Signature` 签名校验
+- `Encrypt Key` 加密事件体解密
+- 将事件输出到 stdout 或本地日志文件，便于后续接入 agent workflow
 
 ## 仓库结构
 
@@ -118,6 +129,59 @@ export FEISHU_USER_ACCESS_TOKEN="<oauth_access_token>"
 ```bash
 plugins/feishu/scripts/doctor-feishu-auth.sh
 ```
+
+## Webhook 服务
+
+本仓库内置轻量 Webhook 接收服务：
+
+```bash
+export FEISHU_VERIFICATION_TOKEN="xxx"
+export FEISHU_ENCRYPT_KEY="xxx"
+
+plugins/feishu/scripts/feishu_webhook_server.py
+```
+
+默认监听：
+
+```text
+http://127.0.0.1:3000/webhook/feishu
+```
+
+飞书开放平台配置时需要使用公网 HTTPS 地址，例如：
+
+```text
+https://your-public-domain.example/webhook/feishu
+```
+
+配置位置：飞书开放平台自建应用 -> `事件与回调` -> `加密策略` 和 `事件订阅`。
+
+详细指引见：
+
+- [Webhook 事件订阅](./plugins/feishu/skills/feishu/reference/webhook.md)
+- [Webhook 到机器人回复示例](./plugins/feishu/skills/feishu/examples/webhook-to-reply.md)
+
+## 本地验证
+
+修改插件后建议运行：
+
+```bash
+scripts/smoke-test.sh
+```
+
+## 社区共建
+
+欢迎提交真实使用经验和改进：
+
+- [贡献指南](./CONTRIBUTING.md)
+- [实战案例库](./case-studies/)
+- [案例模板](./case-studies/TEMPLATE.md)
+
+优先欢迎这些内容：
+
+- Codex + 飞书 workflow 的真实踩坑和修复
+- 你项目中有效的 `AGENTS.md` 规则
+- AI 调优技巧、提示词和验证方法
+- 独立开发者如何用 Codex 快速上线产品、拿到用户或赚到第一笔收入
 
 ## 稳定运行时
 
