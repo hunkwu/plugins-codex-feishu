@@ -1,15 +1,15 @@
 ---
 name: feishu
-description: Use when working with Feishu or Lark IM, Docs, Wiki, Bitable, groups, permissions, chat history, or message push workflows through MCP-backed OpenAPI tools.
+description: Use when working with Feishu IM, Docs, Wiki, Bitable, groups, permissions, chat history, or message push workflows through MCP-backed OpenAPI tools.
 ---
 
 # Feishu
 
-Use this skill when the user asks to operate Feishu, Lark, Feishu Docs, Wiki, groups, chat history, bot-style replies, or Feishu push workflows from Codex.
+Use this skill when the user asks to operate Feishu, Feishu Docs, Wiki, groups, chat history, bot-style replies, or Feishu push workflows from Codex.
 
 ## Operating Rules
 
-1. Prefer the `mcp__lark-mcp__...` tool namespace when available. The hyphen matters.
+1. Prefer the `mcp__feishu-mcp__...` tool namespace when available. The hyphen matters.
 2. Do not invent tokens, IDs, chat IDs, document IDs, or app credentials.
 3. Use `useUAT: true` when creating resources the current user must directly access.
 4. Use `useUAT: false` for application or tenant identity operations when user ownership is not needed.
@@ -33,7 +33,7 @@ The stable local MCP server currently wraps the core IM, Docs, Wiki, and Contact
 Send a text message to a group:
 
 ```yaml
-tool: mcp__lark-mcp__im_v1_message_create
+tool: mcp__feishu-mcp__im_v1_message_create
 params:
   receive_id_type: chat_id
 data:
@@ -45,7 +45,7 @@ data:
 Read recent chat history:
 
 ```yaml
-tool: mcp__lark-mcp__im_v1_message_list
+tool: mcp__feishu-mcp__im_v1_message_list
 path:
   container_id_type: chat
   container_id: "oc_xxxxx"
@@ -56,7 +56,7 @@ params:
 Search Docs:
 
 ```yaml
-tool: mcp__lark-mcp__docx_builtin_search
+tool: mcp__feishu-mcp__docx_builtin_search
 data:
   search_key: "增长日报"
   count: 10
@@ -66,7 +66,7 @@ useUAT: true
 Read a document:
 
 ```yaml
-tool: mcp__lark-mcp__docx_v1_document_rawContent
+tool: mcp__feishu-mcp__docx_v1_document_rawContent
 path:
   document_id: "doxcnxxxxxx"
 useUAT: true
@@ -75,7 +75,7 @@ useUAT: true
 Search Wiki:
 
 ```yaml
-tool: mcp__lark-mcp__wiki_v1_node_search
+tool: mcp__feishu-mcp__wiki_v1_node_search
 data:
   query: "产品方案"
   page_size: 10
