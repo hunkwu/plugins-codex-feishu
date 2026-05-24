@@ -34,9 +34,9 @@
     "privacyPolicyURL": "https://www.feishu.cn/privacy",
     "termsOfServiceURL": "https://www.feishu.cn/terms",
     "defaultPrompt": [
-      "Summarize the latest messages in this Feishu group.",
+      "Draft a Codex project update and send it to Feishu.",
       "Search Feishu Docs and Wiki for this topic.",
-      "Draft a Codex project update and send it to Feishu."
+      "Summarize the latest messages in this Feishu group."
     ],
     "brandColor": "#00A5E8",
     "composerIcon": "./assets/icon.png",

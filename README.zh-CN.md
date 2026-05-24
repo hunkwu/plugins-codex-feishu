@@ -194,9 +194,22 @@ https://your-public-domain.example/webhook/feishu
 
 如果希望把 Codex 日报、周报或执行总结推送到个人私聊，需要使用接收人的 `open_id`，不是应用的 `App ID`。
 
+插件默认展示提示词已优先面向这个流程：
+
+```text
+Draft a Codex project update and send it to Feishu.
+```
+
 - `FEISHU_APP_ID`：发送消息的飞书自建应用，例如 `cli_xxx`
 - `open_id`：接收消息的用户，例如 `ou_xxxxx`
 - `chat_id`：群聊或私聊会话，例如 `oc_xxxxx`
+
+如果判断私人推送还没配置好，建议先引导用户完成：
+
+1. 在本地运行环境配置 `FEISHU_APP_ID` 和 `FEISHU_APP_SECRET`。
+2. 运行 `plugins/feishu/scripts/doctor-feishu-auth.sh` 验证应用凭证和 tenant token。
+3. 获取接收人的 `open_id`。
+4. 先发送一条短测试消息，再发送完整 Codex 项目更新。
 
 获取 `open_id` 的推荐方式：
 

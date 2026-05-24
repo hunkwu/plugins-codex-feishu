@@ -194,9 +194,22 @@ More details:
 
 To push Codex daily reports, weekly reports, or execution summaries into a private assistant chat, use the recipient user's `open_id`, not the app's `App ID`.
 
+The default plugin prompt prioritizes this flow:
+
+```text
+Draft a Codex project update and send it to Feishu.
+```
+
 - `FEISHU_APP_ID`: the sending Feishu self-built app, for example `cli_xxx`
 - `open_id`: the recipient user, for example `ou_xxxxx`
 - `chat_id`: a group or private chat, for example `oc_xxxxx`
+
+If the private push is not configured yet, check and guide the user through:
+
+1. Configure `FEISHU_APP_ID` and `FEISHU_APP_SECRET` in the local runtime environment.
+2. Run `plugins/feishu/scripts/doctor-feishu-auth.sh` to verify app credentials and tenant token access.
+3. Get the recipient user's `open_id`.
+4. Send a short test message before sending the full Codex project update.
 
 Recommended ways to get `open_id`:
 

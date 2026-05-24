@@ -102,6 +102,15 @@ useUAT: false
 
 `FEISHU_APP_ID` answers "which app sends this message"; `open_id` answers "which user receives this message".
 
+When a user asks to draft and send a Codex project update, verify the private push setup before sending:
+
+1. `FEISHU_APP_ID` is configured.
+2. `FEISHU_APP_SECRET` is configured.
+3. A recipient `open_id` or target `chat_id` is known.
+4. A short test message has been sent successfully.
+
+If any item is missing, guide the user through setup first. Never infer an `open_id` from the app `App ID`, and never place real app IDs, secrets, tokens, `open_id`, `chat_id`, or message IDs in committed examples.
+
 ## Getting A User `open_id`
 
 Recommended paths:
