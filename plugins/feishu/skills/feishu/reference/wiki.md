@@ -3,7 +3,7 @@
 ## Search Wiki Nodes
 
 ```yaml
-tool: mcp__lark-mcp__wiki_v1_node_search
+tool: mcp__feishu-mcp__wiki_v1_node_search
 data:
   query: "客户交付流程"
   page_size: 10
@@ -13,7 +13,7 @@ useUAT: true
 ## Get Wiki Node
 
 ```yaml
-tool: mcp__lark-mcp__wiki_v2_space_getNode
+tool: mcp__feishu-mcp__wiki_v2_space_getNode
 path:
   token: "wikicnxxxxxx"
 params:

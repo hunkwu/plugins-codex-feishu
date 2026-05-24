@@ -3,7 +3,7 @@
 ## Create Base
 
 ```yaml
-tool: mcp__lark-mcp__bitable_v1_app_create
+tool: mcp__feishu-mcp__bitable_v1_app_create
 data:
   name: "Codex Tasks"
   time_zone: "Asia/Shanghai"
@@ -15,7 +15,7 @@ Use `useUAT: true` when the user must open the Base directly.
 ## Create Table
 
 ```yaml
-tool: mcp__lark-mcp__bitable_v1_appTable_create
+tool: mcp__feishu-mcp__bitable_v1_appTable_create
 path:
   app_token: "bascnxxxxxx"
 data:
@@ -36,7 +36,7 @@ data:
 ## Search Records
 
 ```yaml
-tool: mcp__lark-mcp__bitable_v1_appTableRecord_search
+tool: mcp__feishu-mcp__bitable_v1_appTableRecord_search
 path:
   app_token: "bascnxxxxxx"
   table_id: "tblxxxxxx"
@@ -57,7 +57,7 @@ Filter `value` should be an array.
 ## Create Record
 
 ```yaml
-tool: mcp__lark-mcp__bitable_v1_appTableRecord_create
+tool: mcp__feishu-mcp__bitable_v1_appTableRecord_create
 path:
   app_token: "bascnxxxxxx"
   table_id: "tblxxxxxx"

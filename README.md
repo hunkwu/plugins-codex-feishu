@@ -160,6 +160,25 @@ More details:
 - [Webhook event subscription](./plugins/feishu/skills/feishu/reference/webhook.md)
 - [Webhook to bot reply example](./plugins/feishu/skills/feishu/examples/webhook-to-reply.md)
 
+## Private Assistant Push
+
+To push Codex daily reports, weekly reports, or execution summaries into a private assistant chat, use the recipient user's `open_id`, not the app's `App ID`.
+
+- `FEISHU_APP_ID`: the sending Feishu self-built app, for example `cli_xxx`
+- `open_id`: the recipient user, for example `ou_xxxxx`
+- `chat_id`: a group or private chat, for example `oc_xxxxx`
+
+Recommended ways to get `open_id`:
+
+1. Ask the target user to send one private message to the bot.
+2. Inspect `event.sender.sender_id.open_id` in Feishu Open Platform event logs.
+3. Or resolve the user by email when the app has `contact:user.id:readonly`.
+
+More details:
+
+- [Authentication: App ID vs Recipient ID](./plugins/feishu/skills/feishu/reference/auth.md#app-id-vs-recipient-id)
+- [Messages: Send Private Assistant Message](./plugins/feishu/skills/feishu/reference/messages.md#send-private-assistant-message)
+
 ## Local Verification
 
 After changing the plugin, run:
@@ -185,11 +204,11 @@ Especially useful contributions include:
 
 ## Stable runtime
 
-The default `lark-mcp` entry in `.mcp.json` uses the local HTTP-backed implementation in:
+The default `feishu-mcp` entry in `.mcp.json` uses the local HTTP-backed implementation in:
 
 - `plugins/feishu/scripts/feishu_http_mcp.py`
 
-The upstream beta server is preserved as `lark-mcp-official-beta` for comparison and debugging, but it is not the recommended production path.
+The upstream beta server is not included in the default plugin runtime. The stable local HTTP-backed server is the recommended path.
 
 ## Official workflow examples
 

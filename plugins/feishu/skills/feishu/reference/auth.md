@@ -2,45 +2,36 @@
 
 ## Required Credentials
 
-Use a Feishu or Lark self-built app for the first version.
+Use a Feishu self-built app for the first version.
 
 ```bash
 export FEISHU_APP_ID="cli_xxx"
 export FEISHU_APP_SECRET="xxx"
 ```
 
-Some Lark MCP installations use Lark-prefixed names:
-
-```bash
-export LARK_APP_ID="cli_xxx"
-export LARK_APP_SECRET="xxx"
-```
-
 ## Recommended Auth Path
 
-Prefer manual code exchange over `lark-mcp login` and use the stable local MCP server for production use.
+Prefer manual code exchange over upstream beta login flows and use the stable local MCP server for production use.
 
 1. Generate or open the Feishu authorization URL in a browser.
 2. After Feishu redirects to `http://localhost:3000/callback?...`, copy the `code` query parameter.
 3. Exchange that code with `scripts/exchange-feishu-code.sh`.
 4. Export the returned `user_access_token` as `FEISHU_USER_ACCESS_TOKEN`.
-5. Start Codex with the default `lark-mcp` entry, which uses the local HTTP-backed server and reads `FEISHU_USER_ACCESS_TOKEN`.
+5. Start Codex with the default `feishu-mcp` entry, which uses the local HTTP-backed server and reads `FEISHU_USER_ACCESS_TOKEN`.
 
 The exchange script uses Feishu's current OAuth token endpoint `authen/v2/oauth/token`, not the legacy `authen/v1/access_token`.
 
 ## MCP Server
 
-The plugin declares a stable local MCP server and one legacy upstream beta entry.
+The plugin declares one stable local MCP server:
 
 ```bash
 command -v python3
-command -v npx
 ```
 
-- `lark-mcp`: stable local server backed by direct Feishu OpenAPI HTTP calls.
-- `lark-mcp-official-beta`: upstream beta MCP server kept only for comparison and debugging.
+- `feishu-mcp`: stable local server backed by direct Feishu OpenAPI HTTP calls.
 
-If `python3` is unavailable, install Python 3 first. `npx` is only required for the legacy upstream beta server.
+If `python3` is unavailable, install Python 3 first.
 
 ## Manual Code Exchange
 
@@ -82,14 +73,62 @@ export FEISHU_USER_ACCESS_TOKEN="<returned_user_access_token>"
 
 If the response field is `access_token`, treat it as the returned `user_access_token` from Feishu OAuth and export it as `FEISHU_USER_ACCESS_TOKEN`.
 
-The stable local MCP server uses `FEISHU_USER_ACCESS_TOKEN` automatically. If you want to compare with the upstream beta server, you can still run:
+The stable local MCP server uses `FEISHU_USER_ACCESS_TOKEN` automatically.
 
-```bash
-npx -y @larksuiteoapi/lark-mcp mcp \
-  -a "$FEISHU_APP_ID" \
-  -s "$FEISHU_APP_SECRET" \
-  -u "$FEISHU_USER_ACCESS_TOKEN"
+## App ID vs Recipient ID
+
+Do not confuse the app identity with the message recipient identity.
+
+| Field | Example | Purpose | Safe to commit? |
+| --- | --- | --- | --- |
+| `FEISHU_APP_ID` | `cli_xxx` | Identifies your Feishu self-built app. | No real value. Use placeholders only. |
+| `FEISHU_APP_SECRET` | `xxx` | App credential used to obtain tenant tokens. | Never. |
+| `FEISHU_USER_ACCESS_TOKEN` | `u-xxx` | OAuth user token for user-owned resources. | Never. |
+| `open_id` | `ou_xxxxx` | Identifies a Feishu user as a message recipient. | No real value. Use placeholders only. |
+| `chat_id` | `oc_xxxxx` | Identifies a Feishu group or private chat. | No real value. Use placeholders only. |
+
+For private assistant-style pushes, send to a user's `open_id`:
+
+```yaml
+tool: mcp__feishu-mcp__im_v1_message_create
+params:
+  receive_id_type: open_id
+data:
+  receive_id: "ou_xxxxx"
+  msg_type: "text"
+  content: "{\"text\":\"Codex project digest is ready.\"}"
+useUAT: false
 ```
+
+`FEISHU_APP_ID` answers "which app sends this message"; `open_id` answers "which user receives this message".
+
+## Getting A User `open_id`
+
+Recommended paths:
+
+1. Ask the target user to send one private message to the bot, then inspect the Feishu event log for:
+
+```text
+event.sender.sender_id.open_id
+```
+
+2. If the app has contact permissions and the user is in the app's visibility scope, resolve by email:
+
+```yaml
+tool: mcp__feishu-mcp__contact_v3_user_batchGetId
+params:
+  user_id_type: open_id
+data:
+  emails:
+    - "user@example.com"
+```
+
+Required permissions usually include:
+
+- `contact:user.id:readonly`
+- `im:message:send_as_bot`
+
+If email lookup returns the email but no `open_id`, check app visibility scope, contact permissions, and whether the email belongs to the same Feishu tenant.
 
 ## Token Mode
 

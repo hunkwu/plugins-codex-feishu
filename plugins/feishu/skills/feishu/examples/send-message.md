@@ -1,7 +1,7 @@
 # Send Message
 
 ```yaml
-tool: mcp__lark-mcp__im_v1_message_create
+tool: mcp__feishu-mcp__im_v1_message_create
 params:
   receive_id_type: chat_id
 data:

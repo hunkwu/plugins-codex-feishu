@@ -160,6 +160,25 @@ https://your-public-domain.example/webhook/feishu
 - [Webhook 事件订阅](./plugins/feishu/skills/feishu/reference/webhook.md)
 - [Webhook 到机器人回复示例](./plugins/feishu/skills/feishu/examples/webhook-to-reply.md)
 
+## 私人助理推送
+
+如果希望把 Codex 日报、周报或执行总结推送到个人私聊，需要使用接收人的 `open_id`，不是应用的 `App ID`。
+
+- `FEISHU_APP_ID`：发送消息的飞书自建应用，例如 `cli_xxx`
+- `open_id`：接收消息的用户，例如 `ou_xxxxx`
+- `chat_id`：群聊或私聊会话，例如 `oc_xxxxx`
+
+获取 `open_id` 的推荐方式：
+
+1. 让目标用户先给机器人发一条私聊消息。
+2. 在飞书开放平台事件日志里查看 `event.sender.sender_id.open_id`。
+3. 或在具备 `contact:user.id:readonly` 权限时，用邮箱解析用户 ID。
+
+详细说明见：
+
+- [Authentication: App ID vs Recipient ID](./plugins/feishu/skills/feishu/reference/auth.md#app-id-vs-recipient-id)
+- [Messages: Send Private Assistant Message](./plugins/feishu/skills/feishu/reference/messages.md#send-private-assistant-message)
+
 ## 本地验证
 
 修改插件后建议运行：
@@ -185,11 +204,11 @@ scripts/smoke-test.sh
 
 ## 稳定运行时
 
-默认 `lark-mcp` 入口使用本地稳定 HTTP 实现，核心脚本位于：
+默认 `feishu-mcp` 入口使用本地稳定 HTTP 实现，核心脚本位于：
 
 - `plugins/feishu/scripts/feishu_http_mcp.py`
 
-上游官方 beta server 仍然保留为 `lark-mcp-official-beta`，仅用于对比调试，不建议作为生产主路径。
+默认插件运行时不再包含上游 beta server。推荐使用当前稳定的本地 HTTP 封装服务。
 
 ## 官方 workflow 示例
 

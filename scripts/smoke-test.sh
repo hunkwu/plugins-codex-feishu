@@ -33,12 +33,14 @@ require_file "${PLUGIN_DIR}/scripts/feishu_webhook_server.py"
 require_file "${PLUGIN_DIR}/scripts/test-feishu-webhook.py"
 require_file "${PLUGIN_DIR}/testdata/webhook/url_verification.json"
 require_file "${PLUGIN_DIR}/testdata/webhook/message_receive_v1.json"
+require_file "${REPO_ROOT}/scripts/check-sensitive-values.sh"
 require_executable "${PLUGIN_DIR}/scripts/generate-feishu-auth-url.sh"
 require_executable "${PLUGIN_DIR}/scripts/exchange-feishu-code.sh"
 require_executable "${PLUGIN_DIR}/scripts/doctor-feishu-auth.sh"
 require_executable "${PLUGIN_DIR}/scripts/feishu_http_mcp.py"
 require_executable "${PLUGIN_DIR}/scripts/feishu_webhook_server.py"
 require_executable "${PLUGIN_DIR}/scripts/test-feishu-webhook.py"
+require_executable "${REPO_ROOT}/scripts/check-sensitive-values.sh"
 
 python3 - <<'PY' "${REPO_ROOT}"
 import json
@@ -144,5 +146,7 @@ if webhook_fixture_check.returncode != 0:
     raise SystemExit(webhook_fixture_check.stderr or webhook_fixture_check.stdout)
 print(webhook_fixture_check.stdout.strip())
 PY
+
+"${REPO_ROOT}/scripts/check-sensitive-values.sh"
 
 echo "Smoke test passed."

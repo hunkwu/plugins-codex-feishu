@@ -1,7 +1,7 @@
 # Read Chat History
 
 ```yaml
-tool: mcp__lark-mcp__im_v1_message_list
+tool: mcp__feishu-mcp__im_v1_message_list
 path:
   container_id_type: chat
   container_id: "oc_xxxxx"

@@ -1,7 +1,7 @@
 # Search Docs
 
 ```yaml
-tool: mcp__lark-mcp__docx_builtin_search
+tool: mcp__feishu-mcp__docx_builtin_search
 data:
   search_key: "项目复盘"
   count: 10

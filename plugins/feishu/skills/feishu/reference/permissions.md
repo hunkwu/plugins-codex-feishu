@@ -3,7 +3,7 @@
 ## Add Document Collaborator
 
 ```yaml
-tool: mcp__lark-mcp__drive_v1_permissionMember_create
+tool: mcp__feishu-mcp__drive_v1_permissionMember_create
 path:
   token: "doxcnxxxxxx"
   type: "docx"
