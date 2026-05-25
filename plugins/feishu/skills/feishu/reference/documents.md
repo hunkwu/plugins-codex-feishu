@@ -48,6 +48,20 @@ Minimum permissions:
 - `docs:document:import` for write-back.
 - `drive:drive` if the tenant or target location requires Drive access.
 
+Read-only path:
+
+- Search Docs
+- Search Wiki
+- Read Docx raw content
+
+Write-back path:
+
+- All read-only steps above
+- `docx_builtin_import`
+- Optional IM push of the new document reference
+
+Use `useUAT: true` when the current user should directly open the imported document. Read-only exploration can stay in user token mode or the token mode already required by the workflow.
+
 ## Notes
 
 - Prefer user token mode for documents the user should open directly.

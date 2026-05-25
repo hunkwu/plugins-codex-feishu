@@ -18,29 +18,39 @@
 ## Codex Project Digest Push
 
 1. Collect the relevant Codex project progress inputs.
-2. Summarize completed work, in-progress work, risks, and next steps.
-3. Convert the summary into a Feishu-friendly message.
-4. Preview the message locally before sending.
-5. Send a short test message to the configured `open_id` or `chat_id`.
-6. Send the digest to the target chat with `im_v1_message_create`.
+2. Structure the content into `Completed`, `In Progress`, `Risks`, and `Next Steps`.
+3. Preview the rendered message locally before sending.
+4. Send a short test message to the configured `open_id` or `chat_id`.
+5. Send the digest to the target chat with `im_v1_message_create`.
 
 Local command path:
 
 ```bash
-npm run feishu:project-update -- --preview --file ./digest.md
-npm run feishu:project-update -- --test --send
-npm run feishu:project-update -- --send --file ./digest.md
+npm run feishu:project-update -- --preview --mode weekly --file ./plugins/feishu/skills/feishu/examples/project-update-template.md
+npm run feishu:project-update -- --dry-run-json --mode daily --message "Completed: shipped docs."
+npm run feishu:project-update -- --test --send --confirm
+npm run feishu:project-update -- --send --confirm --title "Weekly Update" --file ./digest.md
 ```
 
-If the command reports missing configuration, guide the user through `FEISHU_APP_ID`, `FEISHU_APP_SECRET`, `FEISHU_DEFAULT_RECEIVE_ID`, and `FEISHU_DEFAULT_RECEIVE_ID_TYPE` before sending.
+If the command reports missing configuration, guide the user through `FEISHU_APP_ID`, `FEISHU_APP_SECRET`, `FEISHU_DEFAULT_RECEIVE_ID`, `FEISHU_DEFAULT_RECEIVE_ID_TYPE`, and optionally `FEISHU_DEFAULT_UPDATE_MODE` before sending.
 
 ## Docs/Wiki Retrieval To Doc Write-Back
 
-1. Search Feishu Docs or Wiki by keyword.
-2. Read the selected document content.
-3. Summarize the background, decisions, risks, and next steps with Codex.
-4. Import the final Markdown into Feishu Docs.
-5. Send the created document reference back to the target chat.
+Recommended path:
+
+1. Search Feishu Docs by keyword.
+2. If no good result appears, search Wiki with the same keyword.
+3. Resolve the final document token and read the selected Docx content.
+4. Summarize into `Background`, `Key Points`, `Risks`, and `Suggested Next Actions`.
+5. Import the final Markdown into Feishu Docs with `useUAT: true` if the current user should open it directly.
+6. Send the created document reference back to the target chat.
+
+Failure path guidance:
+
+- No document found: refine the search key or switch from Docs to Wiki.
+- Wiki result does not resolve to Docx: inspect the node object type first.
+- Read works but import fails: check `docs:document:import`.
+- Import succeeds but the user cannot open the doc: verify user visibility and Drive permissions.
 
 See `examples/docs-wiki-to-doc.md`.
 

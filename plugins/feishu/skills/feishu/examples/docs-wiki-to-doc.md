@@ -10,6 +10,37 @@ Use case: search Feishu Docs or Wiki, summarize context with Codex, then write t
 4. Import the final Markdown summary into Feishu Docs.
 5. Send the created document link or token back to the target chat.
 
+Recommended single path:
+
+1. Search Docs first when the user already knows the document topic.
+2. Search Wiki when the knowledge is likely organized in a space hierarchy.
+3. Resolve the final Docx token before summarizing.
+4. Write back as a new Doc with `useUAT: true` when the current user should open it directly.
+
+## Summary Template
+
+Use this structure for the generated write-back content:
+
+```md
+# Project Context Summary
+
+## Background
+
+-
+
+## Key Points
+
+-
+
+## Risks
+
+-
+
+## Suggested Next Actions
+
+-
+```
+
 ## Search Docs
 
 ```yaml
@@ -56,4 +87,16 @@ useUAT: true
 - Import Docs: `docs:document:import`
 - Drive access may be required by the tenant or target location: `drive:drive`
 
-Use `useUAT: true` when the created document should be owned by or visible to the current user.
+Permission guidance:
+
+- Docs search and raw-content read workflows can stay read-only.
+- Wiki search and Wiki node lookup can stay read-only.
+- Write-back requires `docs:document:import`.
+- Use `useUAT: true` when the created document should be owned by or visible to the current user.
+
+## Failure Paths
+
+- No search result: refine the keyword or search the other surface, Docs vs Wiki.
+- Wiki result cannot map to a Docx object: inspect the resolved node type before calling Docx APIs.
+- Read works but import fails: the app likely has read scopes but lacks `docs:document:import`.
+- Write-back succeeds but the user cannot open the doc: confirm `useUAT: true`, target visibility, and Drive permissions.

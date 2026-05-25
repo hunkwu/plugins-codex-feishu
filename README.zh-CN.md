@@ -45,23 +45,31 @@ FEISHU_APP_ID=cli_xxx
 FEISHU_APP_SECRET=xxx
 FEISHU_DEFAULT_RECEIVE_ID=ou_xxxxx
 FEISHU_DEFAULT_RECEIVE_ID_TYPE=open_id
+FEISHU_DEFAULT_UPDATE_MODE=weekly
 ```
 
 先验证凭证，并预览消息：
 
 ```bash
 npm run feishu:doctor
-npm run feishu:project-update -- --preview --message "Codex project update preview."
+npm run feishu:project-update -- --preview --mode weekly --file ./plugins/feishu/skills/feishu/examples/project-update-template.md
 ```
 
 正式发送前，先发一条短测试消息：
 
 ```bash
-npm run feishu:project-update -- --test --send
-npm run feishu:project-update -- --send --file ./digest.md
+npm run feishu:project-update -- --test --send --confirm
+npm run feishu:project-update -- --send --confirm --title "Weekly Update" --file ./digest.md
 ```
 
-如果配置缺失，脚本会输出缺少的项目和下一步设置指引。`FEISHU_APP_ID` 是发送消息的应用身份；`open_id` 是接收消息的用户身份。
+常用变体：
+
+```bash
+npm run feishu:project-update -- --dry-run-json --mode daily --message "Completed: shipped docs."
+npm run feishu:project-update -- --preview --receive-id ou_xxxxx --receive-id-type open_id --file ./digest.md
+```
+
+如果配置缺失，脚本会输出缺少的项目和下一步设置指引。`FEISHU_APP_ID` 是发送消息的应用身份；`open_id` 是接收消息的用户身份。真实发送必须带 `--confirm`。
 
 ## 5 分钟消息机器人快速接入
 
@@ -290,13 +298,15 @@ Draft a Codex project update and send it to Feishu.
 2. 运行 `plugins/feishu/scripts/doctor-feishu-auth.sh` 验证应用凭证和 tenant token。
 3. 获取接收人的 `open_id`。
 4. 先发送一条短测试消息，再发送完整 Codex 项目更新。
+5. 如果你的默认节奏是日报或周报，再配置 `FEISHU_DEFAULT_UPDATE_MODE`。
 
 推荐命令路径：
 
 ```bash
-npm run feishu:project-update -- --preview --file ./digest.md
-npm run feishu:project-update -- --test --send
-npm run feishu:project-update -- --send --file ./digest.md
+npm run feishu:project-update -- --preview --mode weekly --file ./plugins/feishu/skills/feishu/examples/project-update-template.md
+npm run feishu:project-update -- --dry-run-json --mode daily --message "Completed: shipped docs."
+npm run feishu:project-update -- --test --send --confirm
+npm run feishu:project-update -- --send --confirm --title "Weekly Update" --file ./digest.md
 ```
 
 获取 `open_id` 的推荐方式：
@@ -304,6 +314,14 @@ npm run feishu:project-update -- --send --file ./digest.md
 1. 让目标用户先给机器人发一条私聊消息。
 2. 在飞书开放平台事件日志里查看 `event.sender.sender_id.open_id`。
 3. 或在具备 `contact:user.id:readonly` 权限时，用邮箱解析用户 ID。
+
+常见失败提示：
+
+- 缺少应用凭证：配置 `FEISHU_APP_ID` 和 `FEISHU_APP_SECRET`。
+- 缺少接收人：配置 `FEISHU_DEFAULT_RECEIVE_ID` 或通过 `--receive-id` 传入。
+- 接收人类型非法：目前只支持 `open_id` 和 `chat_id`。
+- 权限不足：检查 `im:message`、`im:message:send_as_bot` 和租户审批。
+- 已授权但仍无法投递：确认应用已发布，且接收人位于可见范围内。
 
 详细说明见：
 

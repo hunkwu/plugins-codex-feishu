@@ -36,6 +36,7 @@ require_file "${PLUGIN_DIR}/scripts/test-feishu-webhook.py"
 require_file "${PLUGIN_DIR}/skills/feishu/examples/quickstart-message-bot.md"
 require_file "${PLUGIN_DIR}/skills/feishu/examples/docs-wiki-to-doc.md"
 require_file "${PLUGIN_DIR}/skills/feishu/examples/bitable-project-templates.md"
+require_file "${PLUGIN_DIR}/skills/feishu/examples/project-update-template.md"
 require_file "${PLUGIN_DIR}/testdata/webhook/url_verification.json"
 require_file "${PLUGIN_DIR}/testdata/webhook/message_receive_v1.json"
 require_file "${REPO_ROOT}/docs/platform-roadmap.md"
@@ -182,6 +183,33 @@ if project_update_check.returncode != 0:
     raise SystemExit(project_update_check.stderr or project_update_check.stdout)
 print("ok: project update push syntax check passed")
 PY
+
+if ! FEISHU_APP_ID=cli_xxx FEISHU_APP_SECRET=xxx FEISHU_DEFAULT_RECEIVE_ID=ou_xxxxx FEISHU_DEFAULT_RECEIVE_ID_TYPE=open_id \
+  node "${PLUGIN_DIR}/scripts/feishu-project-update.js" --help >/tmp/feishu-project-update-help.txt; then
+  fail "project update help command failed"
+fi
+ok "project update help path passed"
+
+if ! FEISHU_APP_ID=cli_xxx FEISHU_APP_SECRET=xxx FEISHU_DEFAULT_RECEIVE_ID=ou_xxxxx FEISHU_DEFAULT_RECEIVE_ID_TYPE=open_id FEISHU_DEFAULT_UPDATE_MODE=weekly \
+  node "${PLUGIN_DIR}/scripts/feishu-project-update.js" --preview --file "${PLUGIN_DIR}/skills/feishu/examples/project-update-template.md" >/tmp/feishu-project-update-preview.txt; then
+  fail "project update preview command failed"
+fi
+ok "project update preview path passed"
+
+if ! FEISHU_APP_ID=cli_xxx FEISHU_APP_SECRET=xxx FEISHU_DEFAULT_RECEIVE_ID=ou_xxxxx FEISHU_DEFAULT_RECEIVE_ID_TYPE=open_id FEISHU_DEFAULT_UPDATE_MODE=daily \
+  node "${PLUGIN_DIR}/scripts/feishu-project-update.js" --dry-run-json --message "Completed: shipped docs." >/tmp/feishu-project-update-json.txt; then
+  fail "project update dry-run-json command failed"
+fi
+ok "project update dry-run-json path passed"
+
+if FEISHU_APP_ID=cli_xxx FEISHU_APP_SECRET=xxx FEISHU_DEFAULT_RECEIVE_ID=ou_xxxxx FEISHU_DEFAULT_RECEIVE_ID_TYPE=bad \
+  node "${PLUGIN_DIR}/scripts/feishu-project-update.js" --preview --message "test" >/tmp/feishu-project-update-invalid.txt 2>&1; then
+  fail "project update invalid receive_id_type should fail"
+fi
+if ! rg -q "Invalid receive_id_type" /tmp/feishu-project-update-invalid.txt; then
+  fail "project update invalid receive_id_type message missing"
+fi
+ok "project update invalid receive_id_type path passed"
 
 "${REPO_ROOT}/scripts/check-sensitive-values.sh"
 

@@ -6,35 +6,50 @@ const path = require('path');
 const Lark = require('@larksuiteoapi/node-sdk');
 
 const DEFAULT_TEST_TEXT = 'Codex Feishu private assistant test message.';
+const VALID_MODES = new Set(['daily', 'weekly', 'custom']);
+const VALID_RECEIVE_ID_TYPES = new Set(['open_id', 'chat_id']);
 
 function parseArgs(argv) {
   const options = {
-    send: false,
-    test: false,
-    message: '',
+    confirm: false,
+    dryRunJson: false,
     file: '',
+    help: false,
+    message: '',
+    mode: (process.env.FEISHU_DEFAULT_UPDATE_MODE || 'custom').trim() || 'custom',
     receiveId: process.env.FEISHU_DEFAULT_RECEIVE_ID || '',
     receiveIdType: process.env.FEISHU_DEFAULT_RECEIVE_ID_TYPE || 'open_id',
+    send: false,
+    test: false,
+    title: '',
   };
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === '--send') {
-      options.send = true;
-    } else if (arg === '--preview') {
-      options.send = false;
-    } else if (arg === '--test') {
-      options.test = true;
-    } else if (arg === '--message') {
-      options.message = argv[++index] || '';
+    if (arg === '--confirm') {
+      options.confirm = true;
+    } else if (arg === '--dry-run-json') {
+      options.dryRunJson = true;
     } else if (arg === '--file') {
       options.file = argv[++index] || '';
+    } else if (arg === '--help' || arg === '-h') {
+      options.help = true;
+    } else if (arg === '--message') {
+      options.message = argv[++index] || '';
+    } else if (arg === '--mode') {
+      options.mode = argv[++index] || '';
+    } else if (arg === '--preview') {
+      options.send = false;
     } else if (arg === '--receive-id') {
       options.receiveId = argv[++index] || '';
     } else if (arg === '--receive-id-type') {
       options.receiveIdType = argv[++index] || '';
-    } else if (arg === '--help' || arg === '-h') {
-      options.help = true;
+    } else if (arg === '--send') {
+      options.send = true;
+    } else if (arg === '--test') {
+      options.test = true;
+    } else if (arg === '--title') {
+      options.title = argv[++index] || '';
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
@@ -45,17 +60,21 @@ function parseArgs(argv) {
 
 function usage() {
   return `Usage:
-  npm run feishu:project-update -- --preview --message "Project update"
-  npm run feishu:project-update -- --preview --file ./digest.md
-  npm run feishu:project-update -- --test --send
-  npm run feishu:project-update -- --send --file ./digest.md
+  npm run feishu:project-update -- --preview --mode daily --file ./plugins/feishu/skills/feishu/examples/project-update-template.md
+  npm run feishu:project-update -- --dry-run-json --mode weekly --message "Project update"
+  npm run feishu:project-update -- --test --send --confirm
+  npm run feishu:project-update -- --send --confirm --title "Weekly Update" --file ./digest.md
 
 Options:
-  --preview                 Print the outgoing message without sending. Default.
-  --send                    Send the message to Feishu.
-  --test                    Send a short test message.
+  --preview                 Render a local preview. Default when --confirm is absent.
+  --dry-run-json            Print the outgoing Feishu payload as JSON.
+  --send                    Prepare to send the message. Requires --confirm.
+  --confirm                 Required for real sends.
+  --test                    Send a short connectivity test message.
   --message <text>          Message body.
   --file <path>             Read message body from a UTF-8 text file.
+  --mode <mode>             daily, weekly, or custom.
+  --title <text>            Override the generated title line.
   --receive-id <id>         Recipient open_id or chat_id. Defaults to FEISHU_DEFAULT_RECEIVE_ID.
   --receive-id-type <type>  open_id or chat_id. Defaults to FEISHU_DEFAULT_RECEIVE_ID_TYPE.
 `;
@@ -65,7 +84,7 @@ function envValue(name) {
   return (process.env[name] || '').trim();
 }
 
-function buildMessage(options) {
+function readBody(options) {
   if (options.test) {
     return DEFAULT_TEST_TEXT;
   }
@@ -79,39 +98,159 @@ function buildMessage(options) {
   return '';
 }
 
-function validate(options, message) {
-  const missing = [];
-  if (!envValue('FEISHU_APP_ID')) missing.push('FEISHU_APP_ID');
-  if (!envValue('FEISHU_APP_SECRET')) missing.push('FEISHU_APP_SECRET');
-  if (!options.receiveId.trim()) missing.push('FEISHU_DEFAULT_RECEIVE_ID or --receive-id');
-  if (!message) missing.push('--message, --file, or --test');
-
-  if (!['open_id', 'chat_id'].includes(options.receiveIdType)) {
-    missing.push('valid --receive-id-type open_id|chat_id');
-  }
-
-  return missing;
+function defaultTitleForMode(mode) {
+  if (mode === 'daily') return 'Codex Daily Update';
+  if (mode === 'weekly') return 'Codex Weekly Update';
+  return 'Codex Project Update';
 }
 
-function printConfigGuide(missing) {
-  console.error('Feishu private assistant push is not configured yet.');
+function normalizeSections(body) {
+  const labels = ['Completed', 'In Progress', 'Risks', 'Next Steps'];
+  const sections = new Map(labels.map((label) => [label, []]));
+  let current = 'Completed';
+
+  for (const rawLine of body.split('\n')) {
+    const line = rawLine.trim();
+    if (!line) {
+      continue;
+    }
+
+    const matchedLabel = labels.find((label) => line.toLowerCase() === `${label.toLowerCase()}:`);
+    if (matchedLabel) {
+      current = matchedLabel;
+      continue;
+    }
+
+    if (line.startsWith('- ') || line.startsWith('* ')) {
+      sections.get(current).push(line.slice(2).trim());
+      continue;
+    }
+
+    sections.get(current).push(line);
+  }
+
+  return sections;
+}
+
+function renderSection(label, items) {
+  const lines = items.length ? items.map((item) => `- ${item}`) : ['- None'];
+  return `${label}:\n${lines.join('\n')}`;
+}
+
+function buildRenderedMessage(options, body) {
+  if (options.test) {
+    return DEFAULT_TEST_TEXT;
+  }
+
+  const title = (options.title || defaultTitleForMode(options.mode)).trim();
+  const sections = normalizeSections(body);
+  return [
+    title,
+    '',
+    renderSection('Completed', sections.get('Completed')),
+    '',
+    renderSection('In Progress', sections.get('In Progress')),
+    '',
+    renderSection('Risks', sections.get('Risks')),
+    '',
+    renderSection('Next Steps', sections.get('Next Steps')),
+  ].join('\n');
+}
+
+function buildPayload(options, renderedMessage) {
+  return {
+    receive_id_type: options.receiveIdType,
+    receive_id: options.receiveId.trim(),
+    msg_type: 'text',
+    content: {
+      text: renderedMessage,
+    },
+  };
+}
+
+function validate(options, body) {
+  const problems = [];
+
+  if (!envValue('FEISHU_APP_ID')) {
+    problems.push('Missing FEISHU_APP_ID.');
+  }
+  if (!envValue('FEISHU_APP_SECRET')) {
+    problems.push('Missing FEISHU_APP_SECRET.');
+  }
+  if (!options.receiveId.trim()) {
+    problems.push('Missing FEISHU_DEFAULT_RECEIVE_ID or --receive-id.');
+  }
+  if (!body) {
+    problems.push('Missing update content. Use --message, --file, or --test.');
+  }
+  if (!VALID_RECEIVE_ID_TYPES.has(options.receiveIdType)) {
+    problems.push('Invalid receive_id_type. Use open_id or chat_id.');
+  }
+  if (!VALID_MODES.has(options.mode)) {
+    problems.push('Invalid mode. Use daily, weekly, or custom.');
+  }
+  if (options.send && !options.confirm) {
+    problems.push('Real sends require --confirm. Without it, the command stays in preview mode.');
+  }
+
+  return problems;
+}
+
+function printConfigGuide(problems) {
+  console.error('Feishu private assistant push is not ready yet.');
   console.error('');
-  console.error('Missing or invalid:');
-  for (const item of missing) {
-    console.error(`- ${item}`);
+  console.error('Problems:');
+  for (const problem of problems) {
+    console.error(`- ${problem}`);
   }
   console.error('');
   console.error('Fix:');
   console.error('1. Copy .env.example to .env and set FEISHU_APP_ID / FEISHU_APP_SECRET.');
-  console.error('2. Get the recipient user open_id from Feishu event logs or email lookup.');
-  console.error('3. Set FEISHU_DEFAULT_RECEIVE_ID=ou_xxxxx and FEISHU_DEFAULT_RECEIVE_ID_TYPE=open_id.');
+  console.error('2. Set FEISHU_DEFAULT_RECEIVE_ID and FEISHU_DEFAULT_RECEIVE_ID_TYPE.');
+  console.error('3. Use open_id for private assistant push, or chat_id for chat delivery.');
   console.error('4. Run npm run feishu:doctor.');
-  console.error('5. Run npm run feishu:project-update -- --test --send before sending a full update.');
+  console.error('5. Run npm run feishu:project-update -- --test --send --confirm before sending a full update.');
   console.error('');
-  console.error('Reminder: FEISHU_APP_ID identifies the sending app. open_id identifies the recipient user.');
+  console.error('Troubleshooting hints:');
+  console.error('- Permission errors usually mean the app lacks Feishu IM scopes or tenant approval.');
+  console.error('- "No permission" after send often means the bot is not published or the recipient is outside app visibility.');
+  console.error('- FEISHU_APP_ID identifies the sending app. open_id identifies the recipient user.');
 }
 
-async function sendMessage(options, message) {
+function printPreview(payload, options, renderedMessage) {
+  if (options.dryRunJson) {
+    console.log(JSON.stringify(payload, null, 2));
+    return;
+  }
+
+  console.log('Preview only. Add --send --confirm to send.');
+  console.log('');
+  console.log(`Receive ID type: ${payload.receive_id_type}`);
+  console.log(`Receive ID: ${payload.receive_id}`);
+  console.log('');
+  console.log(renderedMessage);
+}
+
+function mapApiError(error) {
+  const statusCode = error && error.response ? error.response.status : null;
+  const data = error && error.response ? error.response.data : null;
+  const code = data && Object.prototype.hasOwnProperty.call(data, 'code') ? data.code : null;
+  const message = data && data.msg ? data.msg : error.message;
+
+  if (statusCode === 403 || code === 99991663) {
+    return 'Feishu rejected the request due to missing permissions. Check IM scopes and tenant approval.';
+  }
+  if (code === 230001 || code === 230006) {
+    return 'The bot may not be published, or the recipient is outside app visibility.';
+  }
+  if (code === 10020 || code === 11020) {
+    return 'The target receive_id is invalid for the selected receive_id_type.';
+  }
+
+  return `Feishu API error: ${message}`;
+}
+
+async function sendMessage(options, payload) {
   const client = new Lark.Client({
     appId: envValue('FEISHU_APP_ID'),
     appSecret: envValue('FEISHU_APP_SECRET'),
@@ -119,22 +258,27 @@ async function sendMessage(options, message) {
     domain: Lark.Domain.Feishu,
   });
 
-  const response = await client.im.v1.message.create({
-    params: {
-      receive_id_type: options.receiveIdType,
-    },
-    data: {
-      receive_id: options.receiveId.trim(),
-      msg_type: 'text',
-      content: JSON.stringify({ text: message }),
-    },
-  });
+  try {
+    const response = await client.im.v1.message.create({
+      params: {
+        receive_id_type: payload.receive_id_type,
+      },
+      data: {
+        receive_id: payload.receive_id,
+        msg_type: payload.msg_type,
+        content: JSON.stringify(payload.content),
+      },
+    });
 
-  console.log(JSON.stringify({
-    ok: true,
-    receive_id_type: options.receiveIdType,
-    message_id: response && response.data ? response.data.message_id : null,
-  }));
+    console.log(JSON.stringify({
+      ok: true,
+      receive_id_type: payload.receive_id_type,
+      message_id: response && response.data ? response.data.message_id : null,
+    }));
+  } catch (error) {
+    console.error(mapApiError(error));
+    process.exit(1);
+  }
 }
 
 async function main() {
@@ -144,25 +288,22 @@ async function main() {
     return;
   }
 
-  const message = buildMessage(options);
-  const missing = validate(options, message);
-  if (missing.length) {
-    printConfigGuide(missing);
+  const body = readBody(options);
+  const problems = validate(options, body);
+  if (problems.length) {
+    printConfigGuide(problems);
     process.exit(2);
   }
 
-  if (!options.send) {
-    console.log(JSON.stringify({
-      mode: 'preview',
-      receive_id_type: options.receiveIdType,
-      receive_id: options.receiveId.trim(),
-      msg_type: 'text',
-      content: { text: message },
-    }, null, 2));
+  const renderedMessage = buildRenderedMessage(options, body);
+  const payload = buildPayload(options, renderedMessage);
+
+  if (!options.send || !options.confirm) {
+    printPreview(payload, options, renderedMessage);
     return;
   }
 
-  await sendMessage(options, message);
+  await sendMessage(options, payload);
 }
 
 if (require.main === module) {
@@ -173,7 +314,9 @@ if (require.main === module) {
 }
 
 module.exports = {
-  buildMessage,
+  buildPayload,
+  buildRenderedMessage,
+  normalizeSections,
   parseArgs,
   validate,
 };

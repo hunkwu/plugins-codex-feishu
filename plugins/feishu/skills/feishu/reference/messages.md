@@ -38,6 +38,40 @@ Ways to get `open_id`:
 
 Do not commit real `open_id`, `chat_id`, `App ID`, app secret, or access token values. Use placeholders such as `ou_xxxxx`, `oc_xxxxx`, and `cli_xxx` in docs.
 
+## Project Update Command Path
+
+Recommended local command flow:
+
+```bash
+npm run feishu:project-update -- --preview --mode weekly --file ./plugins/feishu/skills/feishu/examples/project-update-template.md
+npm run feishu:project-update -- --dry-run-json --mode daily --message "Completed: shipped docs."
+npm run feishu:project-update -- --test --send --confirm
+npm run feishu:project-update -- --send --confirm --title "Weekly Update" --file ./digest.md
+```
+
+Environment defaults:
+
+- `FEISHU_DEFAULT_RECEIVE_ID`
+- `FEISHU_DEFAULT_RECEIVE_ID_TYPE`
+- `FEISHU_DEFAULT_UPDATE_MODE`
+
+The command renders this standard structure for non-test updates:
+
+- `Completed`
+- `In Progress`
+- `Risks`
+- `Next Steps`
+
+## Troubleshooting
+
+- `Missing FEISHU_APP_ID`: set the sending app ID in `.env` or the shell environment.
+- `Missing FEISHU_APP_SECRET`: set the sending app secret in `.env` or the shell environment.
+- `Missing FEISHU_DEFAULT_RECEIVE_ID or --receive-id`: configure the recipient user `open_id` or target `chat_id`.
+- `Invalid receive_id_type`: only `open_id` and `chat_id` are supported.
+- `Real sends require --confirm`: the command stays in preview mode until `--confirm` is provided.
+- `Feishu rejected the request due to missing permissions`: check `im:message`, `im:message:send_as_bot`, and tenant approval.
+- `The bot may not be published, or the recipient is outside app visibility`: publish the app and verify the target user is within visibility scope.
+
 ## Read Chat History
 
 ```yaml

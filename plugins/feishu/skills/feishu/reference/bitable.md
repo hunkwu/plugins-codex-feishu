@@ -77,3 +77,13 @@ Recommended v0.3 tables:
 - Case study intake
 
 See `examples/bitable-project-templates.md` for fields and record examples.
+
+Recommended first two tables:
+
+- `Project Status`: the fastest way to track ongoing work, owners, and next steps.
+- `Release Records`: the fastest way to preserve verification results and release evidence.
+
+Current wrapper boundary:
+
+- If the MCP runtime does not yet expose a stable first-class Bitable wrapper for your exact endpoint, use `feishu_openapi_request` as the transition path.
+- The current stage focuses on reusable project operation templates, not a full Base abstraction layer.

@@ -45,23 +45,31 @@ FEISHU_APP_ID=cli_xxx
 FEISHU_APP_SECRET=xxx
 FEISHU_DEFAULT_RECEIVE_ID=ou_xxxxx
 FEISHU_DEFAULT_RECEIVE_ID_TYPE=open_id
+FEISHU_DEFAULT_UPDATE_MODE=weekly
 ```
 
 Verify credentials and preview the message first:
 
 ```bash
 npm run feishu:doctor
-npm run feishu:project-update -- --preview --message "Codex project update preview."
+npm run feishu:project-update -- --preview --mode weekly --file ./plugins/feishu/skills/feishu/examples/project-update-template.md
 ```
 
 Send a short test message before sending the full update:
 
 ```bash
-npm run feishu:project-update -- --test --send
-npm run feishu:project-update -- --send --file ./digest.md
+npm run feishu:project-update -- --test --send --confirm
+npm run feishu:project-update -- --send --confirm --title "Weekly Update" --file ./digest.md
 ```
 
-If configuration is missing, the script prints the exact missing items and setup steps. `FEISHU_APP_ID` identifies the sending app; `open_id` identifies the recipient user.
+Useful variants:
+
+```bash
+npm run feishu:project-update -- --dry-run-json --mode daily --message "Completed: shipped docs."
+npm run feishu:project-update -- --preview --receive-id ou_xxxxx --receive-id-type open_id --file ./digest.md
+```
+
+If configuration is missing, the script prints the exact missing items and setup steps. `FEISHU_APP_ID` identifies the sending app; `open_id` identifies the recipient user. Real sends require `--confirm`.
 
 ## 5-Minute Message Bot Quickstart
 
@@ -290,13 +298,15 @@ If the private push is not configured yet, check and guide the user through:
 2. Run `plugins/feishu/scripts/doctor-feishu-auth.sh` to verify app credentials and tenant token access.
 3. Get the recipient user's `open_id`.
 4. Send a short test message before sending the full Codex project update.
+5. Set `FEISHU_DEFAULT_UPDATE_MODE` if daily or weekly is the normal default.
 
 Recommended command path:
 
 ```bash
-npm run feishu:project-update -- --preview --file ./digest.md
-npm run feishu:project-update -- --test --send
-npm run feishu:project-update -- --send --file ./digest.md
+npm run feishu:project-update -- --preview --mode weekly --file ./plugins/feishu/skills/feishu/examples/project-update-template.md
+npm run feishu:project-update -- --dry-run-json --mode daily --message "Completed: shipped docs."
+npm run feishu:project-update -- --test --send --confirm
+npm run feishu:project-update -- --send --confirm --title "Weekly Update" --file ./digest.md
 ```
 
 Recommended ways to get `open_id`:
@@ -304,6 +314,14 @@ Recommended ways to get `open_id`:
 1. Ask the target user to send one private message to the bot.
 2. Inspect `event.sender.sender_id.open_id` in Feishu Open Platform event logs.
 3. Or resolve the user by email when the app has `contact:user.id:readonly`.
+
+Common failure hints:
+
+- Missing app credentials: set `FEISHU_APP_ID` and `FEISHU_APP_SECRET`.
+- Missing recipient: set `FEISHU_DEFAULT_RECEIVE_ID` or pass `--receive-id`.
+- Invalid recipient type: only `open_id` and `chat_id` are supported.
+- Permission failure: check `im:message`, `im:message:send_as_bot`, and tenant approval.
+- Delivery failure after authorization: publish the app and verify the recipient is inside visibility scope.
 
 More details:
 
