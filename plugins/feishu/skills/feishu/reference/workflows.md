@@ -96,3 +96,88 @@ scripts/feishu_webhook_server.py
 Cloudflare Workers, Vercel Functions, or an existing OpenClaw/Hermes service are suitable production hosts.
 
 See `reference/webhook.md` for the Feishu Open Platform configuration checklist.
+
+## 中文说明
+
+### 最近群消息总结
+
+推荐流程：
+
+1. 用 `im_v1_chat_list` 找到目标群聊
+2. 用 `im_v1_message_list` 读取最近消息
+3. 整理成决策、阻塞、责任人和下一步动作
+4. 需要时再通过 `im_v1_message_create` 回推总结结果
+
+### 机器人式飞书回复
+
+推荐先搜索 Wiki，再解析节点，再读取对应 Docx 内容，最后生成简洁回复并发回群聊或私聊。这样比直接拼消息上下文更稳定。
+
+### Codex 项目进展推送
+
+推荐流程：
+
+1. 收集项目进展输入
+2. 统一整理成 `Completed`、`In Progress`、`Risks`、`Next Steps`
+3. 本地预览消息
+4. 先发一条短测试消息
+5. 再发送正式更新
+
+推荐命令：
+
+```bash
+npm run feishu:project-update -- --preview --mode weekly --file ./plugins/feishu/skills/feishu/examples/project-update-template.md
+npm run feishu:project-update -- --dry-run-json --mode daily --message "Completed: shipped docs."
+npm run feishu:project-update -- --test --send --confirm
+npm run feishu:project-update -- --send --confirm --title "Weekly Update" --file ./digest.md
+```
+
+如果命令提示缺少配置，优先检查：
+
+- `FEISHU_APP_ID`
+- `FEISHU_APP_SECRET`
+- `FEISHU_DEFAULT_RECEIVE_ID`
+- `FEISHU_DEFAULT_RECEIVE_ID_TYPE`
+- `FEISHU_DEFAULT_UPDATE_MODE`
+
+### Docs / Wiki 检索并写回文档
+
+单一路径建议：
+
+1. 先搜索 Docs
+2. 没有合适结果时，再搜索 Wiki
+3. 解析最终文档 token，并读取 Docx 内容
+4. 总结成 `Background`、`Key Points`、`Risks`、`Suggested Next Actions`
+5. 用 `useUAT: true` 导入新文档
+6. 把文档引用再发回飞书消息
+
+失败路径建议：
+
+- 搜不到文档：换关键词，或从 Docs 切到 Wiki
+- Wiki 结果无法映射到 Docx：先检查节点对象类型
+- 能读不能写：检查 `docs:document:import`
+- 写回成功但用户打不开：检查可见范围和 Drive 权限
+
+### 将结果写入多维表格
+
+当前推荐表：
+
+- Project status
+- Release records
+- Risk tracker
+- Case study intake
+
+如果当前 MCP 还没有你要用的稳定 Bitable wrapper，先走 `feishu_openapi_request`。当前阶段重点是交付接入范式，不是完整抽象层。
+
+### 事件订阅扩展
+
+Webhook 生产链路建议保持固定顺序：
+
+```text
+飞书事件回调
+  -> challenge 校验
+  -> token 校验
+  -> Encrypt Key 解密
+  -> 事件归一化
+  -> 调用 agent workflow
+  -> 用 im_v1_message_create 回推结果
+```

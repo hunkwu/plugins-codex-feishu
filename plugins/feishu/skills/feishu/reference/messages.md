@@ -106,3 +106,60 @@ params:
 ## Create Group
 
 The stable local MCP server does not yet provide a dedicated `im_v1_chat_create` wrapper. Use `feishu_openapi_request` if you need this endpoint before a first-class wrapper is added.
+
+## 中文说明
+
+### 发送文本消息
+
+使用 `im_v1_message_create` 向群聊或目标会话发送文本消息时，`content` 必须是 JSON 字符串，不能直接传对象。
+
+### 发送私人助理消息
+
+私人助理场景优先使用 `open_id` 作为接收人 ID。
+`open_id` 是接收人身份，`FEISHU_APP_ID` 是发送消息的应用身份，两者不能混用。
+
+获取 `open_id` 的常见方式：
+
+- 让目标用户先给机器人发一条私聊消息，再从事件日志读取 `event.sender.sender_id.open_id`
+- 如果应用具备 `contact:user.id:readonly`，可用邮箱通过 `contact_v3_user_batchGetId` 解析
+
+文档和示例里不要提交真实的 `open_id`、`chat_id`、`App ID`、secret 或 access token，统一使用 `ou_xxxxx`、`oc_xxxxx`、`cli_xxx` 这类占位值。
+
+### 项目更新命令路径
+
+推荐的本地命令流程：
+
+```bash
+npm run feishu:project-update -- --preview --mode weekly --file ./plugins/feishu/skills/feishu/examples/project-update-template.md
+npm run feishu:project-update -- --dry-run-json --mode daily --message "Completed: shipped docs."
+npm run feishu:project-update -- --test --send --confirm
+npm run feishu:project-update -- --send --confirm --title "Weekly Update" --file ./digest.md
+```
+
+环境变量默认值：
+
+- `FEISHU_DEFAULT_RECEIVE_ID`
+- `FEISHU_DEFAULT_RECEIVE_ID_TYPE`
+- `FEISHU_DEFAULT_UPDATE_MODE`
+
+非测试消息会被统一整理成这 4 个段落：
+
+- `Completed`
+- `In Progress`
+- `Risks`
+- `Next Steps`
+
+### 常见报错
+
+- `Missing FEISHU_APP_ID`：发送应用 ID 没有配置
+- `Missing FEISHU_APP_SECRET`：发送应用 secret 没有配置
+- `Missing FEISHU_DEFAULT_RECEIVE_ID or --receive-id`：没有配置接收人 `open_id` 或目标 `chat_id`
+- `Invalid receive_id_type`：当前只支持 `open_id` 和 `chat_id`
+- `Real sends require --confirm`：没有显式确认，命令会停留在预览模式
+- `Feishu rejected the request due to missing permissions`：通常是 `im:message`、`im:message:send_as_bot` 或租户审批缺失
+- `The bot may not be published, or the recipient is outside app visibility`：通常是应用未发布，或目标用户不在应用可见范围内
+
+### 读取聊天记录与群成员
+
+读取聊天记录依赖消息读取权限，并且只能读取应用或用户授权范围内可见的内容。
+如果需要创建群聊，当前稳定 MCP 还没有专门的 `im_v1_chat_create` wrapper，可以先走 `feishu_openapi_request`。

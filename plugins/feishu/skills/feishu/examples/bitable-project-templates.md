@@ -146,3 +146,72 @@ Current boundary:
 
 - This stage delivers project operation templates and integration patterns.
 - It does not promise a full Base ORM, sync engine, or generic multi-table framework.
+
+## 中文说明
+
+### 用途
+
+这个示例适合把 Codex 项目状态、任务、风险、发布记录或案例征集结果同步到飞书 Base / 多维表格。
+
+### 模板 1：Project Status
+
+最小必填字段：
+
+- `Project`
+- `Status`
+- `Owner`
+
+字段含义：
+
+- `Project`：项目名
+- `Status`：当前状态
+- `Owner`：负责人
+- `Next Step`：下一步动作
+- `Updated At`：最近更新时间
+
+### 模板 2：Release Records
+
+最小必填字段：
+
+- `Version`
+- `Date`
+- `Summary`
+
+适合记录版本、发布日期、验证结果、commit 和 release note 链接。
+
+### 模板 3：Risk Tracker
+
+最小必填字段：
+
+- `Risk`
+- `Severity`
+- `Status`
+
+适合持续记录风险项、缓解动作、责任人和处理状态。
+
+### 模板 4：Case Study Intake
+
+最小必填字段：
+
+- `Submitter`
+- `Project`
+- `Workflow`
+- `Permission To Publish`
+
+适合收集社区投稿案例，并提前确认是否允许公开发布。
+
+### Base 创建与写入
+
+可以先创建一个 `Codex Project Operations` Base，再逐张表扩展。
+写记录时，优先先保证字段名、字段类型和示例记录一致，再考虑后续自动化。
+
+### 最小权限与当前边界
+
+- Bitable 读写需要租户审批通过的 Base 权限
+- 如果 Base 需要当前用户直接打开，使用 `useUAT: true`
+- 示例里统一用占位值，不提交真实 `app_token`、`table_id` 或记录 ID
+
+当前边界：
+
+- 这一阶段交付的是项目运营模板和接入范式
+- 不承诺完整 Base ORM、同步引擎或通用多表框架

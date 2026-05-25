@@ -100,3 +100,69 @@ Permission guidance:
 - Wiki result cannot map to a Docx object: inspect the resolved node type before calling Docx APIs.
 - Read works but import fails: the app likely has read scopes but lacks `docs:document:import`.
 - Write-back succeeds but the user cannot open the doc: confirm `useUAT: true`, target visibility, and Drive permissions.
+
+## 中文说明
+
+### 用途
+
+这个示例适合「从飞书知识中找资料，再把 Codex 的总结写回飞书文档」的场景。
+
+### 推荐流程
+
+1. 先按关键词搜索 Docs 或 Wiki
+2. 读取最相关的文档内容
+3. 让 Codex 总结背景、关键点、风险和下一步
+4. 把最终 Markdown 导入新飞书文档
+5. 把新文档链接或 token 发回目标聊天
+
+单一路径建议：
+
+1. 用户已经知道主题时，优先先搜 Docs
+2. 知识更像空间目录时，再搜 Wiki
+3. 总结前先拿到最终 Docx token
+4. 如果文档需要当前用户直接打开，写回时用 `useUAT: true`
+
+### 摘要模板
+
+推荐生成的文档结构：
+
+```md
+# Project Context Summary
+
+## Background
+
+-
+
+## Key Points
+
+-
+
+## Risks
+
+-
+
+## Suggested Next Actions
+
+-
+```
+
+### 最小权限
+
+- `docx:document`：搜索和读取 Docs
+- `wiki:wiki:readonly`：搜索和读取 Wiki
+- `docs:document:import`：写回飞书文档
+- `drive:drive`：部分租户或目标位置需要
+
+权限边界：
+
+- Docs 搜索和 Docx 读取可以保持只读
+- Wiki 搜索和节点解析也可以保持只读
+- 写回动作一定需要 `docs:document:import`
+- 如果文档需要当前用户直接持有或打开，使用 `useUAT: true`
+
+### 失败路径
+
+- 搜不到结果：换关键词，或在 Docs / Wiki 之间切换
+- Wiki 无法映射到 Docx：先确认节点实际对象类型
+- 能读不能写：通常是只有读权限，没有 `docs:document:import`
+- 写回成功但用户打不开：检查 `useUAT: true`、可见范围和 Drive 权限

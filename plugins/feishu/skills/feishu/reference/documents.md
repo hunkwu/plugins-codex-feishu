@@ -67,3 +67,53 @@ Use `useUAT: true` when the current user should directly open the imported docum
 - Prefer user token mode for documents the user should open directly.
 - Document URLs often include the document ID after `/docx/`.
 - Wiki pages may point to underlying document tokens. Resolve the Wiki node before reading content.
+
+## 中文说明
+
+### 搜索与读取文档
+
+`docx_builtin_search` 用于按关键词搜索文档，`docx_v1_document_rawContent` 用于读取 Docx 原始内容。
+如果用户最终要直接打开文档，优先使用 user token mode。
+
+### 导入文档
+
+`docx_builtin_import` 适合把 Codex 生成的 Markdown 总结直接写回飞书文档。
+这一步通常用于“搜索资料 -> 总结结果 -> 回写文档”的完整闭环。
+
+### Docs / Wiki 写回路径
+
+推荐流程：
+
+1. 搜索 Docs 或 Wiki
+2. 读取选中的文档内容
+3. 让 Codex 生成总结或结构化输出
+4. 用 `docx_builtin_import` 写回新文档
+5. 需要时再把文档引用发回飞书 IM
+
+最小权限区分：
+
+- 只读路径：
+  - 搜索 Docs
+  - 搜索 Wiki
+  - 读取 Docx 内容
+- 写回路径：
+  - 上面的只读步骤
+  - `docx_builtin_import`
+  - 可选的 IM 推送
+
+权限要求：
+
+- `docx:document`：Docs 搜索和读取
+- `wiki:wiki:readonly`：Wiki 搜索和读取
+- `docs:document:import`：写回文档
+- `drive:drive`：部分租户或目标位置需要
+
+`useUAT: true` 的使用建议：
+
+- 如果导入后的文档需要由当前用户直接打开或持有，使用 `useUAT: true`
+- 只读探索流程可以沿用当前 workflow 已经要求的 token mode
+
+### 额外说明
+
+- 文档 URL 里通常会包含 `/docx/` 后面的 document ID
+- Wiki 页面很多时候只是入口，真正内容还是要落到对应的 Docx token 上再读取
